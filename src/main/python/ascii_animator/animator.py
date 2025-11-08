@@ -104,7 +104,6 @@ class Animator:
         # this process is inherently slow thus sleeping is not necessary
         self.first_cycle_sleep = first_cycle_sleep
         self.output_name = output_name
-        self.frame_count = 0
 
         # Открываем файл на запись только если указано имя
         if self.output_name is not None:
@@ -159,7 +158,6 @@ class Animator:
             return
         self.output_file.write('\n'.join(self.animation.grid))
         self.output_file.write('\n' + '-' * 50 + '\n')
-        self.frame_count += 1
 
     def _update_terminal(self, lines, cycle_complete):
         """ update lines
