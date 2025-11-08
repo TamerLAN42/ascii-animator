@@ -2,8 +2,8 @@ import sys
 import argparse
 import traceback
 import logging
-
-from ascii_animator import Animator, Speed, AsciiAnimation
+# Используем классы из локального animator.py, а не из библиотеки автора
+from animator import Animator, Speed, AsciiAnimation
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ def main():
     parser.add_argument('-a', '--show_axis', action='store_true', help='display the grid axis')
     parser.add_argument('-m', '--max_loops', type=int, default=1, help='maximum number of loops, set to 0 to loop through image until keyboard interrupt (default 1)')
     parser.add_argument('-c', '--columns', type=int, default=150, help='the number of characters per row (default 150)')
+    parser.add_argument('-n', '--name_of_output', type=str, default=None, help='the name of output file')
 
     args = parser.parse_args()
 
@@ -42,7 +43,8 @@ def main():
             speed=speed,
             show_axis=args.show_axis,
             max_loops=args.max_loops,
-            first_cycle_sleep=False)
+            first_cycle_sleep=False,
+            output_name=args.name_of_output)
 
     except argparse.ArgumentError:
         parser.print_help()

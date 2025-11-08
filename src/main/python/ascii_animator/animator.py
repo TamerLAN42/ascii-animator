@@ -86,7 +86,7 @@ class AsciiAnimation(Animation):
 
 class Animator:
 
-    def __init__(self, animation=None, speed=Speed.NORMAL, show_axis=False, max_loops=None, first_cycle_sleep=True):
+    def __init__(self, animation=None, speed=Speed.NORMAL, show_axis=False, max_loops=None, first_cycle_sleep=True, output_name=None):
         """ initialize Animator
         """
         logger.debug('executing Animator constructor')
@@ -103,7 +103,28 @@ class Animator:
         # AsciiAnimation first cycle loads the image into memory
         # this process is inherently slow thus sleeping is not necessary
         self.first_cycle_sleep = first_cycle_sleep
+        self.output_name = output_name
+        self.frame_count = 0
+
+        # Открываем файл на запись только если указано имя
+        if self.output_name is not None:
+            # Добавляем расширение если его нет(по умолчанию используем .txt)
+            if '.' not in self.output_name:
+                filename = self.output_name + '.txt'
+            else:
+                filename = self.output_name
+            self.output_file = open(filename, 'w', encoding='utf-8')
         self.start()
+
+    def close(self):
+        """Закрываем файл на запись"""
+        if hasattr(self, 'output_file') and self.output_file:
+            self.output_file.close()
+            self.output_file = None
+
+    def __del__(self):
+        """Деструктор - убеждаемся в том, что файл закрыт"""
+        self.close()
 
     def _check_loops(self, cycle_complete):
         """ raise exception if maximum number of loops has been processed
@@ -132,12 +153,23 @@ class Animator:
             max_chars = None
         return max_chars
 
+    def _write_frame(self):
+        """ Каждый кадр бережно записываем в файл """
+        if not hasattr(self, 'output_file') or not self.output_file:
+            return
+        self.output_file.write('\n'.join(self.animation.grid))
+        self.output_file.write('\n' + '-' * 50 + '\n')
+        self.frame_count += 1
+
     def _update_terminal(self, lines, cycle_complete):
         """ update lines
         """
         # update terminal via the Lines object
         for index, _ in enumerate(self.animation.grid):
             lines[index] = self.animation.grid[index]
+
+        self._write_frame()
+
         self._check_loops(cycle_complete)
         self._sleep()
 
@@ -165,3 +197,6 @@ class Animator:
 
         except MaxLoopsProcessed:
             logger.debug(f'maximum loops processed {self.loop - 1} - ending animation')
+
+        finally:
+            self.close() # Файл закрываем в любом случае, даже при ошибках
